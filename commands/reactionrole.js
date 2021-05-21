@@ -47,5 +47,7 @@ module.exports = {
       ids[message.guild.id][message.channel.id] = [];
     ids[message.guild.id][message.channel.id].push(msg.id);
     fs.writeFileSync("./reactions.json", JSON.stringify(ids, null, 2));
+
+    message.delete();
   },
 };
