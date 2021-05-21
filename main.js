@@ -11,6 +11,8 @@ if (!fs.existsSync("./config.json")) {
       {
         token: "Here goes your bot token",
         adminRoleId: "Here goes your admin role id",
+        muteRoleId: "Here goes your mute role id",
+        mainServerId: "Here goes your servers id",
         prefix: "!",
         logErr: false,
       },
@@ -69,15 +71,17 @@ client.on("message", (message) => {
   if (!command) return;
 
   // checks if command needs admin role and if user has admin role
-  if (command.adminRoleOnly && message.channel.type == "text") {
-    if (!message.member.roles.cache.has(adminRoleId))
+  if (command.adminRoleOnly) {
+    if (message.channel.type == "text") {
+      if (!message.member.roles.cache.has(adminRoleId))
+        return message.channel.send(
+          "You need to have the admin role to use this command"
+        );
+    } else
       return message.channel.send(
-        "You need to have the admin role to use this command"
+        "This command needs admin role so it can only be used in text channels on servers"
       );
-  } else
-    return message.channel.send(
-      "This command needs admin role so it can only be used in text channels on servers"
-    );
+  }
 
   // Checks if command needs arguments and if the user gave arguments
   if (command.args && !args.length) {
@@ -190,7 +194,7 @@ client.on("ready", async () => {
         );
     }
   }
-
+  muteManager.setClient(client);
   muteManager.loadMutes();
 });
 

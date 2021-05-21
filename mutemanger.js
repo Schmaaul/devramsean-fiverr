@@ -1,10 +1,19 @@
 const { time } = require("console");
 const fs = require("fs");
+const config = require("./config.json");
 
 let timeouts = {};
 let mutedIds = [];
+let client;
 
-exports.mute = (id, duration) => {
+/**
+ *
+ * @param {import("discord.js").GuildMember} target
+ * @param {string} duration
+ * @returns
+ */
+exports.mute = async (target, duration) => {
+  const id = target.user.id;
   if (!duration) return "Invalid time";
   const times = duration.split(":");
   for (const time of times) {
@@ -30,10 +39,15 @@ exports.mute = (id, duration) => {
   mutedIds = mutedIds.filter((mId) => mId != id);
   mutedIds.push(id);
 
+  const role = await target.guild.roles.fetch(config.muteRoleId);
+
+  target.roles.add(role);
+
   return "Added mute";
 };
 
-exports.unmute = (id) => {
+exports.unmute = (target) => {
+  const id = target.user.id;
   unmuteCallback(id);
 };
 
@@ -54,11 +68,19 @@ exports.isMuted = (id) => {
   return mutedIds.includes(id);
 };
 
-const unmuteCallback = (id) => {
+exports.setClient = (setClient) => {
+  client = setClient;
+};
+
+const unmuteCallback = async (id) => {
   const json = require("./mute.json");
   json[id] = undefined;
   fs.writeFileSync("./mute.json", JSON.stringify(json, null, 2));
   clearTimeout(timeouts[id]);
   mutedIds = mutedIds.filter((mId) => mId != id);
-  console.log(`Unmuted id ${id}`);
+  const guild = client.guilds.resolve(config.mainServerId);
+  const role = await guild.roles.fetch(config.muteRoleId);
+  const target = await guild.members.resolve(id);
+
+  target.roles.remove(role);
 };

@@ -17,7 +17,7 @@ module.exports = {
    *
    * @param {import("discord.js").Message} message
    */
-  execute: (args, message) => {
+  execute: async (args, message) => {
     const target = message.mentions.members.first();
     if (!target) return message.channel.send("You need to @ a target for mute");
     const rank = target.roles.highest.position;
@@ -25,6 +25,6 @@ module.exports = {
       return message.channel.send(
         "Your role rank is not high enough to mute this user"
       );
-    message.channel.send(mute(target.user.id, args[1]));
+    message.channel.send(await mute(target, args[1]));
   },
 };

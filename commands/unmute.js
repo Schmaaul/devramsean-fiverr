@@ -17,10 +17,10 @@ module.exports = {
    * @param {import("discord.js").Message} message
    */
   execute: (args, message) => {
-    const target = message.mentions.users.first();
+    const target = message.mentions.members.first();
     if (!target)
       return message.channel.send("You need to @ a target to unmute");
-    unmute(target.id);
+    unmute(target);
     message.channel.send("Unmuted");
   },
 };
