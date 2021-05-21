@@ -16,20 +16,25 @@ module.exports = {
    * @param {import("discord.js").Message} message
    */
   execute: (args, message) => {
-    const user = message.mentions.members.first();
-    if (!user)
+    const target = message.mentions.members.first();
+    if (!target)
       return message.channel.send("You need to @ the user you want to kick.");
-    if (user.id === message.author.id)
+    if (target.id === message.author.id)
       return message.channel.send("Sadly you can not kick yourself");
-    if (user.id === message.client.user.id)
+    if (target.id === message.client.user.id)
       return message.channel.send("Sadly you can not kick this bot");
-    if (!user.kickable)
+    const rank = target.roles.highest.position;
+    if (rank >= message.member.roles.highest.position)
+      return message.channel.send(
+        "Your role rank is not high enough to kick this user"
+      );
+    if (!target.kickable)
       return message.channel.send(
         "I don't have the permissions to kick this user"
       );
 
-    user.kick().then(
-      () => message.channel.send(`Kicked "${user.user.username}"`),
+    target.kick().then(
+      () => message.channel.send(`Kicked "${target.user.username}"`),
       () => message.channel.send("Got an error trying to kick this user")
     );
   },

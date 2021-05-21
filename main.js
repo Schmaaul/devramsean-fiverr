@@ -23,7 +23,11 @@ if (!fs.existsSync("./config.json")) {
 if (!fs.existsSync("./reactions.json"))
   fs.writeFileSync("./reactions.json", "{}");
 
+if (!fs.existsSync("./mute.json")) fs.writeFileSync("./mute.json", "{}");
+
 const reactionJson = require("./reactions.json");
+
+const muteManager = require("./mutemanger");
 
 const Discord = require("discord.js");
 const client = new Discord.Client();
@@ -48,6 +52,8 @@ client.cooldowns = new Discord.Collection();
 
 // starting the bot
 client.on("message", (message) => {
+  if (muteManager.isMuted(message.author.id) && message.deletable)
+    message.delete();
   if (!message.content.startsWith(prefix) || message.author.bot) return;
 
   // Get command name and args
@@ -184,6 +190,8 @@ client.on("ready", async () => {
         );
     }
   }
+
+  muteManager.loadMutes();
 });
 
 client.login(token);

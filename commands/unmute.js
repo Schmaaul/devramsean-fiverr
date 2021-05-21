@@ -1,3 +1,4 @@
+const { unmute } = require("../mutemanger");
 module.exports = {
   name: "unmute",
   cooldown: 0,
@@ -16,6 +17,10 @@ module.exports = {
    * @param {import("discord.js").Message} message
    */
   execute: (args, message) => {
-    message.channel.send("Comming soon");
+    const target = message.mentions.users.first();
+    if (!target)
+      return message.channel.send("You need to @ a target to unmute");
+    unmute(target.id);
+    message.channel.send("Unmuted");
   },
 };

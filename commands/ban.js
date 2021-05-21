@@ -16,20 +16,25 @@ module.exports = {
    * @param {import("discord.js").Message} message
    */
   execute: (args, message) => {
-    const user = message.mentions.members.first();
-    if (!user)
+    const target = message.mentions.members.first();
+    if (!target)
       return message.channel.send("You need to @ the user you want to ban.");
-    if (user.id === message.author.id)
+    if (target.id === message.author.id)
       return message.channel.send("Sadly you can not ban yourself");
-    if (user.id === message.client.user.id)
+    if (target.id === message.client.user.id)
       return message.channel.send("Sadly you can not ban this bot");
-    if (!user.bannable)
+    const rank = target.roles.highest.position;
+    if (rank >= message.member.roles.highest.position)
+      return message.channel.send(
+        "Your role rank is not high enough to ban this user"
+      );
+    if (!target.bannable)
       return message.channel.send(
         "I don't have the permissions to ban this user"
       );
 
-    user.ban().then(
-      () => message.channel.send(`Banned "${user.user.username}"`),
+    target.ban().then(
+      () => message.channel.send(`Banned "${target.user.username}"`),
       () => message.channel.send("Got an error trying to ban this user")
     );
   },

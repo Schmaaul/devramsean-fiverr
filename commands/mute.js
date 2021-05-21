@@ -1,3 +1,5 @@
+const { mute } = require("../mutemanger");
+const { adminRoleId } = require("../config.json");
 module.exports = {
   name: "mute",
   cooldown: 0,
@@ -5,7 +7,7 @@ module.exports = {
   blockInGuilds: false,
   aliases: [],
   description: "Mutes a mentioned user",
-  usage: "[@user] [time]",
+  usage: "[@user] [time format days:hours:min:sek]",
   args: true,
   deactivate: false,
   adminRoleOnly: true,
@@ -16,6 +18,13 @@ module.exports = {
    * @param {import("discord.js").Message} message
    */
   execute: (args, message) => {
-    message.channel.send("Comming soon");
+    const target = message.mentions.members.first();
+    if (!target) return message.channel.send("You need to @ a target for mute");
+    const rank = target.roles.highest.position;
+    if (rank >= message.member.roles.highest.position)
+      return message.channel.send(
+        "Your role rank is not high enough to mute this user"
+      );
+    message.channel.send(mute(target.user.id, args[1]));
   },
 };

@@ -27,6 +27,12 @@ module.exports = {
     const emoji = args[1];
     const roledescription = message.content.split(" ").slice(3).join(" ");
 
+    const rank = role.position;
+    if (rank >= message.member.roles.highest.position)
+      return message.channel.send(
+        "Your role rank is not high enough to create this reaction role"
+      );
+
     //console.log(`https://dummy/${role.id}.png`);
 
     const embed = new MessageEmbed()
