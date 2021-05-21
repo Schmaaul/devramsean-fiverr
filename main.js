@@ -20,6 +20,10 @@ if (!fs.existsSync("./config.json")) {
   );
   process.exit();
 }
+if (!fs.existsSync("./reactions.json"))
+  fs.writeFileSync("./reactions.json", "{}");
+
+const reactionJson = require("./reactions.json");
 
 const Discord = require("discord.js");
 const client = new Discord.Client();
@@ -120,9 +124,66 @@ client.on("message", (message) => {
   }
 });
 
-client.on("ready", () => {
+client.on("messageReactionAdd", async (reaction, user) => {
+  if (user.bot) return;
+  if (reaction.message.author.id != client.user.id) return;
+  const embed = reaction.message.embeds[0];
+  if (!embed) return;
+  const reactions = await reaction.users.fetch();
+  if (!reactions.get(client.user.id)) return reaction.remove();
+
+  const member = reaction.message.guild.members.resolve(user.id);
+  const roleId = embed.thumbnail.url.split("/").pop();
+
+  const role = await member.guild.roles.fetch(roleId);
+  if (!role) {
+    embed.setFooter("the role dosnt exist anymore");
+    return reaction.message.edit(embed);
+  }
+  member.roles.add(role);
+});
+
+client.on("messageReactionRemove", async (reaction, user) => {
+  if (user.bot) return;
+  if (reaction.message.author.id != client.user.id) return;
+
+  const embed = reaction.message.embeds[0];
+  if (!embed) return;
+
+  const reactions = await reaction.users.fetch();
+  if (!reactions.get(client.user.id)) return;
+
+  const member = reaction.message.guild.members.resolve(user.id);
+  const roleId = embed.thumbnail.url.split("/").pop();
+
+  const role = await member.guild.roles.fetch(roleId);
+  if (!role) {
+    embed.setFooter("the role dosnt exist anymore");
+    return reaction.message.edit(embed);
+  }
+
+  member.roles.remove(role);
+});
+
+client.on("ready", async () => {
   console.log("Bot Logged in as " + client.user.tag + "!");
   console.log("The bot is on " + client.guilds.cache.size + " servers!");
+
+  // caching the reaction role messages
+  for (const guildId in reactionJson) {
+    const guild = await client.guilds.fetch(guildId);
+
+    for (const channelId in reactionJson[guildId]) {
+      const channel = guild.channels.resolve(channelId);
+      const msgs = await channel.messages
+        .fetch(reactionJson[guildId][channelId])
+        .then((messages) =>
+          messages.filter((msg) =>
+            reactionJson[guildId][channelId].includes(msg.id)
+          )
+        );
+    }
+  }
 });
 
 client.login(token);
